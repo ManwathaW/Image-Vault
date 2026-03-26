@@ -2,9 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
-
-use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,7 +21,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if (config('app.env') === 'production') {
-            URL::forceScheme('https');
+            // Railway terminates TLS at its reverse proxy and forwards requests
+            // to the container over plain HTTP. Trusting the X-Forwarded-Proto
+            // header lets Laravel detect the original HTTPS scheme correctly
+            // without forcing it unconditionally, which breaks URL generation
+            // when the internal transport is HTTP.
+            Request::setTrustedProxies(
+                ['127.0.0.1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'],
+                Request::HEADER_X_FORWARDED_FOR |
+                Request::HEADER_X_FORWARDED_HOST |
+                Request::HEADER_X_FORWARDED_PORT |
+                Request::HEADER_X_FORWARDED_PROTO |
+                Request::HEADER_X_FORWARDED_PREFIX
+            );
         }
     }
 }
