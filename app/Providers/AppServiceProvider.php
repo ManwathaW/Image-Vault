@@ -27,13 +27,15 @@ class AppServiceProvider extends ServiceProvider
             // without forcing it unconditionally, which breaks URL generation
             // when the internal transport is HTTP.
             Request::setTrustedProxies(
-                ['127.0.0.1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'],
+                ['*'],
                 Request::HEADER_X_FORWARDED_FOR |
                 Request::HEADER_X_FORWARDED_HOST |
                 Request::HEADER_X_FORWARDED_PORT |
                 Request::HEADER_X_FORWARDED_PROTO |
                 Request::HEADER_X_FORWARDED_PREFIX
             );
+            
+            \Illuminate\Support\Facades\URL::forceScheme('https');
         }
     }
 }
